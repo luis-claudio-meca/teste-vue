@@ -1,32 +1,64 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+  <vl-map data-projection="EPSG:4326" style="height: 400px">
+    <vl-view
+      :zoom.sync="zoom"
+      :center.sync="center"
+      :rotation.sync="rotation"
+    ></vl-view>
+
+    <vl-layer-tile>
+      <vl-source-osm></vl-source-osm>
+    </vl-layer-tile>
+
+    <vl-feature>
+      <vl-geom-multi-point
+        :coordinates="[
+          [116.544921, 40.451633],
+          [116.545264, 40.451649],
+          [116.545865, 40.451698],
+          [116.546144, 40.451551],
+          [116.546337, 40.451274],
+          [116.546788, 40.451143],
+          [116.547324, 40.451078],
+          [116.547539, 40.450996],
+          [116.547839, 40.450719],
+          [116.54844, 40.450506],
+          [116.548933, 40.450604],
+          [116.549448, 40.450604],
+          [116.550242, 40.450376],
+          [116.550865, 40.450163],
+          [116.551702, 40.449935],
+          [116.552581, 40.449576],
+        ]"
+      ></vl-geom-multi-point>
+      <vl-style-box>
+        <vl-style-icon
+          src="./assets/marker.png"
+          :anchor="[0.5, 1]"
+          :scale="0.3"
+        ></vl-style-icon>
+        <vl-style-text text="I'm circle"></vl-style-text>
+      </vl-style-box>
+    </vl-feature>
+  </vl-map>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import Vue from "vue";
+import { VectorSource } from "vuelayers";
+import { IconStyle } from 'vuelayers'
 
-#nav {
-  padding: 30px;
+Vue.use(IconStyle)
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+Vue.use(VectorSource);
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
-</style>
+export default {
+  data() {
+    return {
+      zoom: 17,
+      center: [116.54875, 40.45064],
+      rotation: 0,
+    };
+  },
+};
+</script>
