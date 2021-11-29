@@ -54,30 +54,43 @@
         <vl-source-osm></vl-source-osm>
       </vl-layer-tile>
 
-      <vl-feature v-for="feature in selectStation" :key="feature.id">
+      <vl-feature
+        v-for="feature in selectStation"
+        :key="feature.id"
+        :properties="{ prop: feature.id }"
+        :features="feature"
+      >
         <vl-geom-point
           :coordinates="[+feature.longitude, +feature.latitude]"
         ></vl-geom-point>
         <vl-interaction-select
-          v-on:select="modalSelect(selectedFeatures)"
           :features.sync="selectedFeatures"
+          v-on:select="modalSelect(selectedFeatures)"
         />
-        <vl-style-box  :features="feature">
-          <vl-style-icon
-            src="./assets/marker.png"
-            :anchor="[0.2, 1]"
-            :scale="0.1"
-          >
-          </vl-style-icon>
-
-          <vl-style-circle :radius="20">
+        <vl-style-box>
+          <vl-style-circle :radius="15" v-if="zoom <= 8? true : false">
             <vl-style-fill color="white"></vl-style-fill>
             <vl-style-stroke :color="feature.color"></vl-style-stroke>
           </vl-style-circle>
           <vl-style-text :text="feature.name"></vl-style-text>
+
+          <vl-style-icon
+          v-if="zoom > 8? true : false"
+            src="./assets/marker.png"
+            :anchor="[0.5, 1]"
+            :scale="0.1"
+          >
+          </vl-style-icon>
         </vl-style-box>
       </vl-feature>
     </vl-map>
+    <v-dialog v-model="dialog" max-width="940px">
+      <Modal
+        v-if="dialog"
+        :selectedData="ModalSelect"
+        v-on:onClose="closeModal"
+      />
+    </v-dialog>
   </v-card>
 </template>
 
@@ -87,7 +100,7 @@ import { VectorSource } from "vuelayers";
 import { IconStyle } from "vuelayers";
 import DBstation from "./components/station";
 import DBstationType from "./components/stationType";
-//import Modal from "./components/modal.vue";
+import Modal from "./components/modal.vue";
 import { SelectInteraction } from "vuelayers";
 
 Vue.use(SelectInteraction);
@@ -97,7 +110,7 @@ Vue.use(VectorSource);
 
 export default {
   components: {
-    //  Modal,
+    Modal,
   },
 
   data() {
@@ -114,6 +127,7 @@ export default {
       dialog: false,
       selectStation: [],
       selectedFeatures: [],
+      ModalSelect: [],
     };
   },
   mounted() {
@@ -170,7 +184,20 @@ export default {
     },
 
     modalSelect(value) {
-      console.log("foi", value);
+      try {
+        this.selectStation.map((station) => {
+          if (value[0].properties.prop == station.id) {
+            this.ModalSelect.push(station);
+            this.dialog = true;
+          }
+        });
+      } catch (ex) {
+        console.log(ex);
+      }
+    },
+    closeModal() {
+      this.ModalSelect = [];
+      this.dialog = false;
     },
   },
 };

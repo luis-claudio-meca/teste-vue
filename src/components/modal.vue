@@ -1,35 +1,126 @@
-<template>
-  <div class="text-center">
-    <v-card>
-      <v-card-title class="text-h5 grey lighten-2">
-        Privacy Policy
-      </v-card-title>
+<template >
+    <div class="text-center">
+      <v-card>
+        <v-card-title class="text-h5 grey lighten-2">
+          Dados da Estação
+        </v-card-title>
 
-      <v-card-text>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-        velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-        occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-        mollit anim id est laborum.
-      </v-card-text>
+        <v-list-item two-line>
+          <v-col cols="12">
+            <v-row>
+              <v-col cols="6">
+                <v-list-item-content>
+                  <v-list-item-title>Identificador</v-list-item-title>
+                  <v-list-item-subtitle>{{ Data.id }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+              <v-col cols="6">
+                <v-list-item-content>
+                  <v-list-item-title>Nome</v-list-item-title>
+                  <v-list-item-subtitle>{{ Data.name }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+            </v-row>
 
-      <v-divider></v-divider>
+            <v-row>
+              <v-col cols="6">
+                <v-list-item-content>
+                  <v-list-item-title>Latitude</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    Data.latitude
+                  }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+              <v-col cols="6">
+                <v-list-item-content>
+                  <v-list-item-title>Longitude</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    Data.longitude
+                  }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+            </v-row>
 
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" text @click="dialog = false"> I accept </v-btn>
-      </v-card-actions>
-    </v-card>
-  </div>
+            <v-row>
+              <v-col cols="4">
+                <v-list-item-content>
+                  <v-list-item-title>Elevação (m2)</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    Data.elevation_meters
+                  }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+              <v-col cols="4">
+                <v-list-item-content>
+                  <v-list-item-title>Inicio de Operação</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    Data.operation_start_date
+                  }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+              <v-col cols="4">
+                <v-list-item-content>
+                  <v-list-item-title>Fim de Operação</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    Data.operation_end_date
+                  }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+            </v-row>
+
+            <v-row>
+              <v-col cols="6">
+                <v-list-item-content>
+                  <v-list-item-title>Tipo de Estação</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    Data.stationname
+                  }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+              <v-col cols="6">
+                <v-list-item-content>
+                  <v-list-item-title>Cor</v-list-item-title>
+                  <v-list-item-subtitle>{{ Data.color }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="$emit('onClose')"> Fechar </v-btn>
+        </v-card-actions>
+      </v-card>
+    </div>
 </template>
 
 <script>
+import DBstationType from "./stationType";
+
 export default {
+  props: {
+    selectedData: Array,
+  },
   data() {
     return {
+      dialog: true,
+      Data: [],
+      stationTypes: DBstationType,
     };
+  },
+  
+  mounted() {
+    this.Data = this.selectedData[0];
+
+
+    this.stationTypes.map((stationType) => {
+      if (this.Data.station_type_id == stationType.id)
+        this.Data.color = stationType.color;
+      this.Data.stationname = stationType.name;
+    });
   },
 };
 </script>
