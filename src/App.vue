@@ -1,64 +1,177 @@
 <template>
-  <vl-map data-projection="EPSG:4326" style="height: 400px">
-    <vl-view
-      :zoom.sync="zoom"
-      :center.sync="center"
-      :rotation.sync="rotation"
-    ></vl-view>
+  <v-card class="mx-auto">
+    <v-system-bar color="indigo darken-2" dark>
+      <v-spacer></v-spacer>
+    </v-system-bar>
 
-    <vl-layer-tile>
-      <vl-source-osm></vl-source-osm>
-    </vl-layer-tile>
+    <v-toolbar color="indigo" dark>
+      <v-toolbar-title>Vuetify and OpenLayer</v-toolbar-title>
 
-    <vl-feature>
-      <vl-geom-multi-point
-        :coordinates="[
-          [116.544921, 40.451633],
-          [116.545264, 40.451649],
-          [116.545865, 40.451698],
-          [116.546144, 40.451551],
-          [116.546337, 40.451274],
-          [116.546788, 40.451143],
-          [116.547324, 40.451078],
-          [116.547539, 40.450996],
-          [116.547839, 40.450719],
-          [116.54844, 40.450506],
-          [116.548933, 40.450604],
-          [116.549448, 40.450604],
-          [116.550242, 40.450376],
-          [116.550865, 40.450163],
-          [116.551702, 40.449935],
-          [116.552581, 40.449576],
-        ]"
-      ></vl-geom-multi-point>
-      <vl-style-box>
-        <vl-style-icon
-          src="./assets/marker.png"
-          :anchor="[0.5, 1]"
-          :scale="0.3"
-        ></vl-style-icon>
-        <vl-style-text text="I'm circle"></vl-style-text>
-      </vl-style-box>
-    </vl-feature>
-  </vl-map>
+      <v-spacer></v-spacer>
+    </v-toolbar>
+
+    <v-card data-app>
+      <v-card-title>Filtros</v-card-title>
+      <v-container fluid>
+        <v-row align="center">
+          <v-col cols="12" sm="6">
+            <v-select
+              v-model="values"
+              :items="itemsType"
+              @change="change = changeStationType(values)"
+              chips
+              label="Tipo de Estação"
+              multiple
+              solo
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-select
+              v-model="valueStation"
+              :items="itemsStations"
+              chips
+              label="Estações"
+              @change="changeStation(valueStation)"
+              multiple
+              solo
+            ></v-select>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-card>
+
+    <vl-map
+      data-projection="EPSG:4326"
+      style="height: 500px; width: 80%; margin: 30px auto"
+    >
+      <vl-view
+        :zoom.sync="zoom"
+        :center.sync="center"
+        :rotation.sync="rotation"
+      ></vl-view>
+
+      <vl-layer-tile>
+        <vl-source-osm></vl-source-osm>
+      </vl-layer-tile>
+
+      <vl-feature v-for="feature in selectStation" :key="feature.id">
+        <vl-geom-point
+          :coordinates="[+feature.longitude, +feature.latitude]"
+        ></vl-geom-point>
+        <vl-interaction-select
+          v-on:select="modalSelect(selectedFeatures)"
+          :features.sync="selectedFeatures"
+        />
+        <vl-style-box  :features="feature">
+          <vl-style-icon
+            src="./assets/marker.png"
+            :anchor="[0.2, 1]"
+            :scale="0.1"
+          >
+          </vl-style-icon>
+
+          <vl-style-circle :radius="20">
+            <vl-style-fill color="white"></vl-style-fill>
+            <vl-style-stroke :color="feature.color"></vl-style-stroke>
+          </vl-style-circle>
+          <vl-style-text :text="feature.name"></vl-style-text>
+        </vl-style-box>
+      </vl-feature>
+    </vl-map>
+  </v-card>
 </template>
 
 <script>
 import Vue from "vue";
 import { VectorSource } from "vuelayers";
-import { IconStyle } from 'vuelayers'
+import { IconStyle } from "vuelayers";
+import DBstation from "./components/station";
+import DBstationType from "./components/stationType";
+//import Modal from "./components/modal.vue";
+import { SelectInteraction } from "vuelayers";
 
-Vue.use(IconStyle)
+Vue.use(SelectInteraction);
 
+Vue.use(IconStyle);
 Vue.use(VectorSource);
 
 export default {
+  components: {
+    //  Modal,
+  },
+
   data() {
     return {
-      zoom: 17,
-      center: [116.54875, 40.45064],
+      zoom: 7,
+      center: [-51.93, -24.77],
       rotation: 0,
+      stations: DBstation,
+      stationTypes: DBstationType,
+      values: [],
+      itemsType: [],
+      valueStation: [],
+      itemsStations: [],
+      dialog: false,
+      selectStation: [],
+      selectedFeatures: [],
     };
+  },
+  mounted() {
+    this.loadData();
+  },
+
+  methods: {
+    loadData() {
+      this.stationTypes.map((stationType) => {
+        this.stations.map((station) => {
+          if (station.station_type_id == stationType.id)
+            station.color = stationType.color;
+        });
+
+        this.itemsType.push(stationType.name);
+      });
+
+      this.stations.map((station) => {
+        this.itemsStations.push(station.name);
+        this.selectStation.push(station);
+      });
+    },
+
+    changeStationType(values) {
+      this.selectStation = [];
+      let types = [];
+      this.itemsStations = [];
+
+      this.stationTypes.forEach((item) =>
+        values.includes(item.name) ? types.push(item) : null
+      );
+
+      this.stations.map((station) => {
+        types.map((type) => {
+          if (station.station_type_id == type.id) {
+            this.selectStation.push(station);
+            this.itemsStations.push(station.name);
+          }
+        });
+      });
+    },
+
+    changeStation(values) {
+      this.selectStation = [];
+      let types = [];
+
+      this.stations.forEach((item) =>
+        values.includes(item.name) ? types.push(item) : null
+      );
+
+      types.map((type) => {
+        this.selectStation.push(type);
+      });
+    },
+
+    modalSelect(value) {
+      console.log("foi", value);
+    },
   },
 };
 </script>
